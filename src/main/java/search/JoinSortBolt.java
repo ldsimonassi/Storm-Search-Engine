@@ -12,6 +12,7 @@ import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.IRichBolt;
 import backtype.storm.topology.OutputFieldsDeclarer;
+import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 
@@ -34,24 +35,23 @@ public class JoinSortBolt implements IRichBolt {
 		long start;
 		String origin;
 		String requestId;
-		
-		
+
 		public List<Item> getResults(){
 			return items;
 		}
-		
+
 		public long getAge(){
 			return System.currentTimeMillis()-start;
 		}
-		
+
 		public String getId(){
 			return getId(origin, requestId);
 		}
-		
+
 		public static String getId(String origin, String requestId){
 			return origin+"-"+requestId;
 		}
-		
+
 		public Merger(String origin, String requestId, int size) {
 			this.size = size;
 			items = new ArrayList<Item>(size);
@@ -64,7 +64,7 @@ public class JoinSortBolt implements IRichBolt {
 		public int getTotalMerged(){
 			return totalMerged;
 		}
-		
+
 		public void merge(List<Item> newItems){
 			totalMerged++;
 			if(items.size()==0){
@@ -195,8 +195,7 @@ public class JoinSortBolt implements IRichBolt {
 
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
-		// TODO Auto-generated method stub
-		
+		declarer.declare(new Fields("origin", "requestId", "results"));
 	}
 	
 	public static void main(String[] args) {

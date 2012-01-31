@@ -18,7 +18,7 @@ import backtype.storm.topology.IRichBolt;
 import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.tuple.Tuple;
 
-public class AnswerBolt implements IRichBolt {
+public class AnswerQueryBolt implements IRichBolt {
 	private static final long serialVersionUID = 1L;
 
 	@SuppressWarnings("rawtypes")
@@ -74,13 +74,11 @@ public class AnswerBolt implements IRichBolt {
 
 	@Override
 	public void cleanup() {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
-		// No outputs for this BOLT.
+		// No output, this is a terminal Bolt.
 	}
 
 }

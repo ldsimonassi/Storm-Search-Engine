@@ -20,7 +20,6 @@ public class ItemsShard {
 	HashMap<Item, Item> myItems;
 	
 	public ItemsShard(int initialCapacity) {
-		// TODO Read Items from persistent storage.
 		index = new HashMap<String, HashSet<Item>>(initialCapacity, 0.9f);
 		myItems= new HashMap<Item, Item>(initialCapacity, 0.9f);
 	}

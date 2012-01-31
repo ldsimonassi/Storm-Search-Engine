@@ -18,14 +18,14 @@ import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Values;
 
-public class QueriesSpout implements IRichSpout {
+public class ItemsNewsFeedSpout implements IRichSpout {
 	private static final long serialVersionUID = 1L;
 
 	@SuppressWarnings("rawtypes")
 	Map conf;
 	TopologyContext context;
 	SpoutOutputCollector collector;
-	String queriesPullHost;
+	String feedPullHost;
 	int maxPull;
 	HttpClient httpclient;
 	HttpGet httpget;
@@ -39,7 +39,7 @@ public class QueriesSpout implements IRichSpout {
 		this.conf= conf;
 		this.context= context;
 		this.collector= collector;
-		this.queriesPullHost= (String) conf.get("queries-pull-host");
+		this.feedPullHost= (String) conf.get("feed-pull-host");
 		try{
 			this.maxPull= Integer.parseInt((String)conf.get("max-pull"));
 		} catch(Exception ex){
@@ -51,7 +51,7 @@ public class QueriesSpout implements IRichSpout {
 
 	private void reconnect() {
 		httpclient = new DefaultHttpClient(new SingleClientConnManager()); 
-		httpget = new HttpGet("http://"+queriesPullHost+"/?max="+maxPull); 
+		httpget = new HttpGet("http://"+feedPullHost+"/?max="+maxPull); 
 	}
 
 
@@ -75,12 +75,12 @@ public class QueriesSpout implements IRichSpout {
 			String origin= reader.readLine();
 			while(true) {
 				String id= reader.readLine();
-				String query= reader.readLine();
-				if(id==null || query==null)
+				int itemId= Integer.valueOf(reader.readLine());
+				if(id==null)
 					break;
 				else {
 					// I don't send the message id object, so I disable the ackers mechanism
-					collector.emit(new Values(origin, id, query));
+					collector.emit(new Values(origin, id, itemId));
 				}
 			} 
 		} catch (Exception e) {
@@ -100,19 +100,15 @@ public class QueriesSpout implements IRichSpout {
 
 	@Override
 	public void ack(Object msgId) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void fail(Object msgId) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
-		declarer.declare(new Fields("origin", "requestId", "query"));
+		declarer.declare(new Fields("origin", "requestId", "itemId"));
 	}
 
 	@Override

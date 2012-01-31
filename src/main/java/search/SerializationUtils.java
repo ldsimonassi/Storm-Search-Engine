@@ -67,5 +67,10 @@ public class SerializationUtils {
 			}
 		}
 	}
+
+	public Object toByteArray(Item i) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 	
 }

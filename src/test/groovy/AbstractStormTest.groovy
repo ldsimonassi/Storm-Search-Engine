@@ -1,22 +1,38 @@
+import search.SearchEngineTopologyStarter
+import backtype.storm.LocalCluster;
 import groovyx.net.http.ContentType;
+import groovyx.net.http.RESTClient
 import org.junit.Before
 import org.junit.After
 import org.junit.Assert
-import groovyx.net.http.RESTClient
+
 
 public abstract class AbstractStormTest extends Assert {
     def itemsApiClient
     def searchEngineApiClient
     def newsFeedApiClient
 
+	// Storm data structures
+	def cluster
+	def topology
+	def conf
+
 	@Before
     public void startLocalCluster() {
-		//TODO setUp the storm environment
+		cluster = new LocalCluster();
+		topology = SearchEngineTopologyStarter.createTopology()
+		conf = SearchEngineTopologyStarter.createConf("127.0.0.1:8080", 
+													  "127.0.0.1:9090", 
+													  "127.0.0.1:8888", 
+													  10);
+
+		cluster.submitTopology("test:"+this.getClass().getName(), conf, topology)
 	}
 	
 	@After
 	public void stopLocalCluster() {
 		//TODO shutDown
+		cluster.shutdown();
 	}
 
 	@Before
@@ -67,7 +83,7 @@ public abstract class AbstractStormTest extends Assert {
 
 	public Object searchApi(String query) {
 		def document = "/${query}.json"
-		def resp = searchApiClient.get(path:document)
+		def resp = searchEngineApiClient.get(path:document)
 
 		assertEquals(200, resp.status)
 		
