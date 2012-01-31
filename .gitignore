@@ -5,3 +5,4 @@ logs/
 target/
 *.class
 *.jar
+*.swp
