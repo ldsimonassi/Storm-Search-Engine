@@ -1,10 +1,12 @@
 package search;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import search.model.Item;
 import search.model.ItemsDao;
+import search.model.ItemsShard;
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.IRichBolt;
@@ -13,18 +15,21 @@ import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 
-
 public class SearchBucketBolt implements IRichBolt {
+	private static final long serialVersionUID = 1L;
+
 	OutputCollector collector;
+	@SuppressWarnings("rawtypes")
 	Map stormConf;
 	TopologyContext context;
 	int currentShard;
 	int totalShards;
 	int base_id;
 	SerializationUtils su;
+	ItemsShard shard;
 	
 	@Override
-	public void prepare(Map stormConf, 
+	public void prepare(@SuppressWarnings("rawtypes") Map stormConf, 
 						TopologyContext context,
 						OutputCollector collector) {
 		this.stormConf= stormConf;
@@ -33,13 +38,15 @@ public class SearchBucketBolt implements IRichBolt {
 		currentShard = context.getThisTaskIndex();
 		totalShards = context.getRawTopology().get_bolts().get(context.getThisComponentId()).get_common().get_parallelism_hint();
 		System.out.println("SearchBucket Bolt created "+currentShard+" of "+totalShards);
-		su= new SerializationUtils();	
+		su= new SerializationUtils();
+		shard = new ItemsShard(10000); 
 		base_id= 10000*currentShard;
 	}
 
 	@Override
 	public void execute(Tuple input) {
 		// Get request routing information
+
 		String origin= input.getString(0);
 		String requestId= input.getString(1);
 		String query= input.getString(2);

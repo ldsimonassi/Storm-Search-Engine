@@ -1,15 +1,10 @@
 package search;
 
-import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintStream;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
@@ -24,11 +19,13 @@ import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.tuple.Tuple;
 
 public class AnswerBolt implements IRichBolt {
+	private static final long serialVersionUID = 1L;
 
+	@SuppressWarnings("rawtypes")
 	@Override
 	public void prepare(Map stormConf, TopologyContext context,
 			OutputCollector collector) {
-		client= new DefaultHttpClient();
+		client= new DefaultHttpClient(new SingleClientConnManager());
 		this.su= new SerializationUtils();
 	}
 
@@ -46,7 +43,9 @@ public class AnswerBolt implements IRichBolt {
 	HttpClient client;
 	
 	private void sendBack(String origin, String id, List<Item> finalResult){
-		HttpPost post= new HttpPost("http://"+origin+":8082/?id="+id);
+		String to= "http://"+origin+":8082/?id="+id;
+		System.out.println("Answering to:["+to+"]");
+		HttpPost post= new HttpPost(to);
 		StringBuffer strBuff= new StringBuffer();
 		for (Item item : finalResult) {
 			strBuff.append(item.id);
@@ -73,26 +72,6 @@ public class AnswerBolt implements IRichBolt {
 		}
 	}
 
-	private void saveToFile(String id, List<Item> finalResult) {
-		File f= new File("/var/tmp/spool/"+id+".log");
-		PrintStream pstr= null;
-		try {
-			pstr = new PrintStream(f);
-		
-			for (Item item : finalResult) {
-				pstr.println(item);	
-			}
-			
-			
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} finally {
-			if(pstr!=null)
-				pstr.close();
-		}
-	}
-
 	@Override
 	public void cleanup() {
 		// TODO Auto-generated method stub
@@ -101,8 +80,7 @@ public class AnswerBolt implements IRichBolt {
 
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
-		// TODO Auto-generated method stub
-
+		// No outputs for this BOLT.
 	}
 
 }

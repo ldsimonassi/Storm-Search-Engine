@@ -1,25 +1,16 @@
 package search;
 
 import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.LinkedList;
 import java.util.Map;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.SingleClientConnManager;
 
-
-import search.model.ItemsDao;
 import backtype.storm.spout.SpoutOutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.IRichSpout;
@@ -28,7 +19,9 @@ import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Values;
 
 public class QueriesSpout implements IRichSpout {
+	private static final long serialVersionUID = 1L;
 
+	@SuppressWarnings("rawtypes")
 	Map conf;
 	TopologyContext context;
 	SpoutOutputCollector collector;
@@ -41,7 +34,7 @@ public class QueriesSpout implements IRichSpout {
 	 * Open a thread for each processed server.
 	 */
 	@Override
-	public void open(Map conf, TopologyContext context,
+	public void open(@SuppressWarnings("rawtypes") Map conf, TopologyContext context,
 			SpoutOutputCollector collector) {
 		this.conf= conf;
 		this.context= context;
@@ -85,8 +78,10 @@ public class QueriesSpout implements IRichSpout {
 				String query= reader.readLine();
 				if(id==null || query==null)
 					break;
-				else
+				else {
+					// I don't send the message id object, so I disable the ackers mechanism
 					collector.emit(new Values(origin, id, query));
+				}
 			} 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -102,10 +97,6 @@ public class QueriesSpout implements IRichSpout {
 		
 	}
 
-	private String getRandomSearchQuery() {
-		int idx= (int)(ItemsDao.possibleWords.length*Math.random());
-		return ItemsDao.possibleWords[idx];
-	}
 
 	@Override
 	public void ack(Object msgId) {
