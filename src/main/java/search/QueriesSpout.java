@@ -20,7 +20,9 @@ import backtype.storm.tuple.Values;
 
 public class QueriesSpout implements IRichSpout {
 	private static final long serialVersionUID = 1L;
-
+	
+	public static final int TIMEOUT= 1000;
+	
 	@SuppressWarnings("rawtypes")
 	Map conf;
 	TopologyContext context;
@@ -29,7 +31,8 @@ public class QueriesSpout implements IRichSpout {
 	int maxPull;
 	HttpClient httpclient;
 	HttpGet httpget;
-	
+	int id=0;
+
 	/**
 	 * Open a thread for each processed server.
 	 */
@@ -47,22 +50,19 @@ public class QueriesSpout implements IRichSpout {
 		}
 		reconnect();
 	}
-	
 
 	private void reconnect() {
 		httpclient = new DefaultHttpClient(new SingleClientConnManager()); 
 		httpget = new HttpGet("http://"+queriesPullHost+"/?max="+maxPull); 
 	}
 
-
 	@Override
 	public void close() {
 	}
+
 	
-	int id=0;
 	
-	
-	public static final int TIMEOUT= 1000;
+
 	
 	@Override
 	public void nextTuple() {
@@ -94,7 +94,6 @@ public class QueriesSpout implements IRichSpout {
 					e.printStackTrace();
 				}
 		}
-		
 	}
 
 

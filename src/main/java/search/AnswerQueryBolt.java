@@ -10,6 +10,9 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.SingleClientConnManager;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 
 import search.model.Item;
 import backtype.storm.task.OutputCollector;
@@ -42,31 +45,30 @@ public class AnswerQueryBolt implements IRichBolt {
 	
 	HttpClient client;
 	
+	@SuppressWarnings("unchecked")
 	private void sendBack(String origin, String id, List<Item> finalResult){
 		String to= "http://"+origin+":8082/?id="+id;
-		System.out.println("Answering to:["+to+"]");
-		HttpPost post= new HttpPost(to);
-		StringBuffer strBuff= new StringBuffer();
-		for (Item item : finalResult) {
-			strBuff.append(item.id);
-			strBuff.append("\t");
-			strBuff.append(item.name);
-			strBuff.append("\t");
-			strBuff.append(item.price);
-			strBuff.append("\n");
-		}
 		
+		System.out.println("Answering:"  + to);
+		
+		HttpPost post= new HttpPost(to);
+		
+		JSONArray list = new JSONArray();
+		
+		for (Item item : finalResult) {
+			JSONObject obj= new JSONObject();
+			obj.put("title", item.title);
+			obj.put("id", item.id);
+			obj.put("price", item.price);
+			list.add(obj);
+		}
+		String json= JSONValue.toJSONString(list);
 		try {
-			StringEntity entity= new StringEntity(strBuff.toString());
+			StringEntity entity= new StringEntity(json);
 			post.setEntity(entity);
-			
-
 			HttpResponse response= client.execute(post);
-			
 			InputStream is= response.getEntity().getContent();
-			
-			is.close();
-			
+			is.close();			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

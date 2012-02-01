@@ -77,8 +77,8 @@ public class JoinSortBolt implements IRichBolt {
 				int iA = 0;
 				int iB = 0;
 				for(int i=0; i<size; i++){
-					boolean overA= iA>items.size();
-					boolean overB= iB>items.size();
+					boolean overA= iA>=items.size();
+					boolean overB= iB>=newItems.size();
 					
 					if(!overB && !overA){
 						Item itmA= items.get(iA);

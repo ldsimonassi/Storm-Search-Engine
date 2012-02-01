@@ -20,6 +20,6 @@ class PreparationTest extends AbstractStormTest {
 	@Test
 	public void newsFeedExists() {
 		def resp = newsFeedApiClient.get(path:'/0')
-		assertEquales(resp.status, 200)
+		assertEquals(resp.status, 200)
 	}
 }

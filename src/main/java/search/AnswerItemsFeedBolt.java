@@ -41,6 +41,7 @@ public class AnswerItemsFeedBolt implements IRichBolt {
 	
 	private void sendBack(String origin, String id){
 		String to= "http://"+origin+":9092/?id="+id;
+		System.out.println("Answering feed:"+to);
 		HttpPost post= new HttpPost(to);
 		try {
 			StringEntity entity= new StringEntity("OK");

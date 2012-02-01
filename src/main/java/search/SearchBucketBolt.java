@@ -36,17 +36,39 @@ public class SearchBucketBolt implements IRichBolt {
 		this.context= context;
 		this.collector= collector;
 		currentShard = context.getThisTaskIndex();
-		totalShards = context.getRawTopology().get_bolts().get(context.getThisComponentId()).get_common().get_parallelism_hint();
-		System.out.println("SearchBucket Bolt created "+currentShard+" of "+totalShards);
-		su= new SerializationUtils();
+		String myId = context.getThisComponentId();
+		totalShards = context.getRawTopology().get_bolts().get(myId).get_common().get_parallelism_hint();
+		su = new SerializationUtils();
 		shard = new ItemsShard(10000); 
-		base_id= 10000*currentShard;
+	}
+	
+	private boolean isMine(int itemId) {
+		int remain = itemId % totalShards; 
+		return remain == currentShard; 
 	}
 
 	@Override
 	public void execute(Tuple input) {
-		// Get request routing information
+		if(input.getSourceComponent().equals("read-item-data")){
+		
+			String origin= input.getString(0);
+			String requestId= input.getString(1);
+			int itemId= input.getInteger(2);
+			if(isMine(itemId)){
+				byte[] ba = input.getBinary(3);
+				if(ba==null) {
+					System.out.println("Removing item id:"+itemId);
+					shard.remove(itemId);
+				} else {
+					Item i= su.itemFromByteArray(ba);
+					System.out.println("Updating item index: "+i);
+					shard.update(i);
+				}
+			}
+			return ;
+		}
 
+		// Get request routing information
 		String origin= input.getString(0);
 		String requestId= input.getString(1);
 		String query= input.getString(2);
@@ -54,15 +76,12 @@ public class SearchBucketBolt implements IRichBolt {
 		// Execute query with local data scope
 		List<Item> results= executeLocalQuery(query);
 		
-		//System.out.println("results for "+query+":"+results.size());
-		
 		// Send data to next step: Merger
 		collector.emit(new Values(origin, requestId, query, su.toByteArray(results)));
 	}
-	
-	
-	
+
 	private List<Item> executeLocalQuery(String query) {
+		// TODO REMOVE
 		ArrayList<Item> list= new ArrayList<Item>();
 		int size= (int)(Math.random()*10);
 		for (int i = 0; i < size; i++) {

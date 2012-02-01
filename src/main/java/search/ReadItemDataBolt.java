@@ -38,61 +38,72 @@ public class ReadItemDataBolt implements IRichBolt {
 	public void prepare(@SuppressWarnings("rawtypes") Map stormConf, 
 						TopologyContext context,
 						OutputCollector collector) {
-		this.stormConf= stormConf;
-		this.context= context;
-		this.collector= collector;
-		su= new SerializationUtils();
-		this.itemsApiHost= (String) stormConf.get("items-api-host");
+		this.stormConf = stormConf;
+		this.context = context;
+		this.collector = collector;
+		su = new SerializationUtils();
+		this.itemsApiHost = (String)stormConf.get("items-api-host");
 		reconnect();
 	}
 
 	private void reconnect() {
 		httpclient = new DefaultHttpClient(new SingleClientConnManager()); 
-		 
 	}
 	
 	public Item readItem(int id) throws Exception{
 		HttpResponse response;
 		BufferedReader reader= null;
-		httpget = new HttpGet("http://"+itemsApiHost+"/"+id+".json");
+		String url= "http://"+itemsApiHost+"/"+id+".json";
+		System.out.println("Reading item data:["+url+"]");
+		httpget = new HttpGet(url);
 		try {
 			response = httpclient.execute(httpget);
-			HttpEntity entity = response.getEntity();
-			
-			entity.getContent();
-			reader= new BufferedReader(new InputStreamReader(entity.getContent()));
-			Object obj=JSONValue.parse(reader);
-			JSONObject item=(JSONObject)obj;
-			Item i= new Item((Long)item.get("id"), (String)item.get("title"), (Long)item.get("price"));
-			return i;
+
+			if(response.getStatusLine().getStatusCode()==200) {
+				HttpEntity entity = response.getEntity();
+				entity.getContent();
+				reader= new BufferedReader(new InputStreamReader(entity.getContent()));
+				Object obj=JSONValue.parse(reader);
+				JSONObject item=(JSONObject)obj;
+				Item i= new Item((Long)item.get("id"), (String)item.get("title"), (Long)item.get("price"));
+				return i;
+			} else if (response.getStatusLine().getStatusCode() == 404) {
+				response.getEntity().getContent().close();
+				return null;
+			} else
+				throw new Exception(response.getStatusLine().getStatusCode()+" is not a valid HTTP code for this response");
 		} catch (Exception e) {
 			e.printStackTrace();
 			reconnect();
 			throw new Exception("Error reading item ["+id+"]", e);
 		} finally {
-			if(reader!=null)
+			if(reader!=null){
 				try {
 					reader.close();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
+			}
 		}
 	}
 	
 	@Override
 	public void execute(Tuple input) {
-		String origin= input.getString(0);
-		String requestId= input.getString(1);
-		int itemId= input.getInteger(2);
-		
+		String origin = input.getString(0);
+		String requestId = input.getString(1);
+		int itemId = input.getInteger(2);
+
 		Item i;
 		try {
 			i = readItem(itemId);
-			collector.emit(new Values(origin, requestId, itemId, su.toByteArray(i)));
+			if(i==null) {
+				collector.emit(new Values(origin, requestId, itemId, null));
+			} else {
+				collector.emit(new Values(origin, requestId, itemId, su.toByteArray(i)));
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
 	}
 
 	@Override
@@ -101,7 +112,7 @@ public class ReadItemDataBolt implements IRichBolt {
 
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
-		declarer.declare(new Fields("origin"));
+		declarer.declare(new Fields("origin", "requestId", "itemId", "data"));
 	}
 	
 	
@@ -118,7 +129,5 @@ public class ReadItemDataBolt implements IRichBolt {
 		  System.out.println(item.get("id"));
 		  System.out.println(item.get("title"));
 		  System.out.println(item.get("price"));
-
-		  
 	}
 }

@@ -88,20 +88,20 @@ else {
 }
 
 if(process.argv.length>3) {
-	topology_timeout = process.argv[3];
+	topology_timeout = parseInt(process.argv[3]);
 } else {
 	console.log("No topology timeout provided, using default "+topology_timeout);
 }
 
 if(process.argv.length>4) {
-	claim_timeout = process.argv[4];
+	claim_timeout = parseInt(process.argv[4]);
 } else {
 	console.log("No claim timeout provided, using default "+claim_timeout);
 }
 
 
 if(process.argv.length>5) {
-	base_port = process.argv[5];
+	base_port = parseInt(process.argv[5]);
 } else {
 	console.log("No baseport provided, using default "+base_port);
 }

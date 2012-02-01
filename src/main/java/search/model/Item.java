@@ -15,12 +15,12 @@ public class Item implements Serializable {
 	
 	public Item(long id, String title, double price) {
 		this.id= id;
-		this.name= title;
+		this.title= title;
 		this.price= price;
 	}
 	
 	public long id;
-	public String name;
+	public String title;
 	public double price;
 	
 	@Override
@@ -37,7 +37,7 @@ public class Item implements Serializable {
 	
 	@Override
 	public String toString() {
-		return "id:"+id+ " title: "+name+ " price:"+price;
+		return "id:"+id+ " title: "+title+ " price:"+price;
 	}
 
 	public boolean greaterThan(Item itmB) {

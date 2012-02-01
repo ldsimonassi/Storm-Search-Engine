@@ -1,3 +1,4 @@
+import search.LocalTopologyStarter
 import search.SearchEngineTopologyStarter
 import backtype.storm.LocalCluster;
 import groovyx.net.http.ContentType;
@@ -17,23 +18,17 @@ public abstract class AbstractStormTest extends Assert {
 	def topology
 	def conf
 
-	@Before
-    public void startLocalCluster() {
-		cluster = new LocalCluster();
-		topology = SearchEngineTopologyStarter.createTopology()
-		conf = SearchEngineTopologyStarter.createConf("127.0.0.1:8080", 
-													  "127.0.0.1:9090", 
-													  "127.0.0.1:8888", 
-													  10);
+	public static topologyStarted = false
 
-		cluster.submitTopology("test:"+this.getClass().getName(), conf, topology)
+	@Before
+	public void startTopology(){
+		if(!topologyStarted){
+			LocalTopologyStarter.main(null);
+			topologyStarted = true;
+			Thread.sleep(1000);
+		}
 	}
 	
-	@After
-	public void stopLocalCluster() {
-		//TODO shutDown
-		cluster.shutdown();
-	}
 
 	@Before
     public void startRestClients() {
@@ -47,7 +42,6 @@ public abstract class AbstractStormTest extends Assert {
 		def resp= itemsApiClient.delete(path : "/")
 		assertEquals(resp.status, 200)
 	}
-
 
 	/**
 	 *  Testing Utilities...
@@ -86,7 +80,7 @@ public abstract class AbstractStormTest extends Assert {
 		def resp = searchEngineApiClient.get(path:document)
 
 		assertEquals(200, resp.status)
-		
+		println(resp.data)
 		return resp.data
 	}
 

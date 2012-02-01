@@ -75,13 +75,15 @@ public class ItemsNewsFeedSpout implements IRichSpout {
 			String origin= reader.readLine();
 			while(true) {
 				String id= reader.readLine();
-				int itemId= Integer.valueOf(reader.readLine());
 				if(id==null)
 					break;
-				else {
-					// I don't send the message id object, so I disable the ackers mechanism
-					collector.emit(new Values(origin, id, itemId));
-				}
+				String strId= reader.readLine();
+				strId= strId.substring(1);
+				int itemId= Integer.valueOf(strId);
+				
+				// I don't send the message id object, so I disable the ackers mechanism
+				System.out.println("News feed emiting: ["+origin+"] ["+id+"] ["+itemId+"]");
+				collector.emit(new Values(origin, id, itemId));
 			} 
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -126,9 +126,7 @@
                         </goals>
                     </execution>
                 </executions>
-
             </plugin>
-
         
 		    <plugin>
 		      <groupId>org.apache.maven.plugins</groupId>
@@ -156,11 +154,14 @@
                         <configuration>
                             <tasks>
                                 <mkdir dir="${basedir}/src/main/java"/>
+                                
                                 <taskdef name="groovyc"
                                     classname="org.codehaus.groovy.ant.Groovyc">
                                     <classpath refid="maven.compile.classpath"/>
                                 </taskdef>
+                                
                                 <mkdir dir="${project.build.outputDirectory}"/>
+                                
                                 <groovyc destdir="${project.build.outputDirectory}"
                                     srcdir="${basedir}/src/main/java/" listfiles="true">
                                     <classpath refid="maven.compile.classpath"/>

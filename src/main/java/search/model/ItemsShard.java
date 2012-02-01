@@ -45,10 +45,18 @@ public class ItemsShard {
 	public void update(Item i) {
 		//TODO Implement a more efficient, but more complex update operation (if necessary).
 		// Update only if title changed
-		if(!i.name.equals(myItems.get(i))){
+		Item myItem= myItems.get(i);
+		
+		if(myItem==null)
+			add(i);
+		else if(!i.title.equals(myItem.title)){
 			remove(i);
 			add(i);
 		}
+	}
+	public void remove(int itemId) {
+		Item i= new Item(itemId, "", 0);
+		remove(i);
 	}
 	
 	public void remove(Item i) {
@@ -58,7 +66,7 @@ public class ItemsShard {
 			for (String word : words) {
 				HashSet<Item> theSet= index.get(word);
 				if(theSet==null) 
-					throw new ConcurrentModificationException("Trying to remove an item which wasn't indexed, but its on de indexed list!");
+					throw new ConcurrentModificationException("Trying to remove anw item which wasn't indexed, but its on de indexed list!");
 				
 				if(theSet.size()==1){
 					index.remove(word);
@@ -74,7 +82,7 @@ public class ItemsShard {
 	
 	private List<String> getItemWords(Item i) {
 		ArrayList<String> ret = new ArrayList<String>();
-		StringTokenizer strTok = new StringTokenizer(i.name, " ", false);
+		StringTokenizer strTok = new StringTokenizer(i.title, " ", false);
 
 		while(strTok.hasMoreTokens()) {
 			ret.add(strTok.nextToken());

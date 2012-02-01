@@ -23,7 +23,7 @@ public class SerializationUtils {
 
 	        for (Item i : list) {
 	        	packer.write(i.price);
-	        	packer.write(i.name);
+	        	packer.write(i.title);
 	        	packer.write(i.id);
 			}
 	        return out.toByteArray();
@@ -41,6 +41,56 @@ public class SerializationUtils {
 	
 	MessagePack msgpack = new MessagePack();
 
+
+	
+	public Item itemFromByteArray(byte[] binary) {
+		ByteArrayInputStream in = new ByteArrayInputStream(binary);
+		try {
+			Unpacker unpacker = msgpack.createUnpacker(in);
+			Item i= new Item();
+			i.price= unpacker.readDouble();
+			i.title= unpacker.readString();
+			i.id= unpacker.readLong();
+			return i;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		} finally {
+			try {
+				in.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	
+	
+	public byte[] itemToByteArray(Item itm) {
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		try{
+	        Packer packer = msgpack.createPacker(out);
+        	packer.write(itm);
+        	packer.write(itm);
+        	packer.write(itm);
+
+	        return out.toByteArray();
+        } catch (Exception ex) {
+        	ex.printStackTrace();
+        	return null;
+        } finally {
+        	try {
+				out.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+        }
+	}
+	
+	
+	
+	
+	
 	public List<Item> fromByteArray(byte[] binary) {
 		ByteArrayInputStream in = new ByteArrayInputStream(binary);
 		try {
@@ -51,7 +101,7 @@ public class SerializationUtils {
 			for (int j = 0; j < size; j++) {
 				i= new Item();
 				i.price= unpacker.readDouble();
-				i.name= unpacker.readString();
+				i.title= unpacker.readString();
 				i.id= unpacker.readLong();
 				list.add(i);
 			}
