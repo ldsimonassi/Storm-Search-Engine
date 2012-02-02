@@ -79,6 +79,7 @@ public class QueriesSpout implements IRichSpout {
 				if(id==null || query==null)
 					break;
 				else {
+					query = query.substring(1);
 					// I don't send the message id object, so I disable the ackers mechanism
 					collector.emit(new Values(origin, id, query));
 				}

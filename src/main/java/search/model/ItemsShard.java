@@ -1,6 +1,7 @@
 package search.model;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -91,6 +92,8 @@ public class ItemsShard {
 	}
 
 	
+	
+	Set<Item> emptySet= Collections.emptySet();
 	/**
 	 * This method is highly concurrent
 	 * @param word
@@ -98,6 +101,9 @@ public class ItemsShard {
 	 */
 	public Set<Item> getItemsContainingWord(String word) {
 		Set<Item> items= index.get(word);
+		if(items==null){
+			return emptySet;
+		}
 		//System.out.println("\tWord: ["+word +"] res:"+items.size());
 		return items;
 	}
@@ -107,7 +113,7 @@ public class ItemsShard {
 		//System.out.println("Query: ["+words+"]");
 	
 		StringTokenizer strTok= new StringTokenizer(words, "-", false);
-		HashSet<Item> result= null;
+		HashSet<Item> result= new HashSet<Item>();
 		boolean first= true;
 		while(strTok.hasMoreTokens()){
 			String word= strTok.nextToken();

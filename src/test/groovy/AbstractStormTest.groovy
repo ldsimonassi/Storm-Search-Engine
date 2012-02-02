@@ -53,6 +53,7 @@ public abstract class AbstractStormTest extends Assert {
 		toSend['title'] = title
 		toSend['price'] = price
 
+		println "Posting item [${document}] [${toSend}]"
         def resp= itemsApiClient.post(path : document,
                                       body: toSend,
                                       requestContentType: ContentType.JSON)
@@ -76,7 +77,7 @@ public abstract class AbstractStormTest extends Assert {
 	}
 
 	public Object searchApi(String query) {
-		def document = "/${query}.json"
+		def document = "/${query}"
 		def resp = searchEngineApiClient.get(path:document)
 
 		assertEquals(200, resp.status)

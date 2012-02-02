@@ -8,24 +8,7 @@ public class SearchTest extends AbstractStormTest {
 	@Test
 	public void newsFeedTest() {
 		def result = searchApi("new")
-		println "-----------------------"
-		println "-----------------------"
-		println "-----------------------"
-		println "-----------------------"
-		println "-----------------------"
-		println "-----------------------"
-		println result[0]
-		println "-----------------------"
-		println "-----------------------"
-		println "-----------------------"
-		println "-----------------------"
-		println "-----------------------"
-		println result[0]
-		println result[0]
-		println result[0]
-		println result[0]
-		println result[0]
-		//assertEquals(result.size(), 0)
+		assertEquals(result.size(), 0)
 
 		addItem(1, "new dvd player", 100)
 		addItem(2, "new digital camera", 80)
@@ -36,10 +19,10 @@ public class SearchTest extends AbstractStormTest {
 
 
 		result = searchApi("drive")
-		//assertEquals(result.size(), 0)
+		assertEquals(0, result.size())
 
 		result = searchApi("new")
-		//assertEquals(result.size(), 3)
+		assertEquals(3, result.size())
 
 		removeItem(1)
 		removeItem(2)
@@ -49,7 +32,7 @@ public class SearchTest extends AbstractStormTest {
 		postNew(3)
 
 		result = searchApi("new")
-		//assertEquals(result.size(), 0)
+		assertEquals(0, result.size())
 	}
 
 	@Test

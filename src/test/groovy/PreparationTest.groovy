@@ -14,7 +14,7 @@ class PreparationTest extends AbstractStormTest {
 
 	@Test
 	public void searchEngineExists() {
-		def resp = searchApi('/mp3')
+		def resp = searchApi('mp3')
 	}
 
 	@Test

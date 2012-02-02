@@ -70,9 +70,9 @@ public class SerializationUtils {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		try{
 	        Packer packer = msgpack.createPacker(out);
-        	packer.write(itm);
-        	packer.write(itm);
-        	packer.write(itm);
+        	packer.write(itm.price);
+        	packer.write(itm.title);
+        	packer.write(itm.id);
 
 	        return out.toByteArray();
         } catch (Exception ex) {
@@ -117,10 +117,4 @@ public class SerializationUtils {
 			}
 		}
 	}
-
-	public Object toByteArray(Item i) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
 }

@@ -36,6 +36,7 @@ Array.prototype.display = function() {
 var topology_timeout= 2000;
 var claim_timeout= 2000;
 var base_port = 8080;
+var content_type = 'application/json; charset=utf-8';
 
 // Metrics
 var total_active_tasks = 0;
@@ -106,6 +107,12 @@ if(process.argv.length>5) {
 	console.log("No baseport provided, using default "+base_port);
 }
 
+if(process.argv.length>6) {
+	content_type = process.argv[6];
+} else {
+	console.log("No content encoding provided, using default "+content_type);
+}
+
 
 var report = function () {
 	var d= new Date();
@@ -115,6 +122,7 @@ var report = function () {
 	console.log("* Topology TO: "+ topology_timeout);
 	console.log("* Claim TO: "+ claim_timeout);
 	console.log("* Base Port: " + base_port);
+	console.log("* Content-type: " + content_type);
 	console.log("************* WORK *************");
 	console.log("* Total requests made: "+ total_requests_made);
 	console.log("* Total requests answered: "+  total_requests_answered);
@@ -201,13 +209,16 @@ http.createServer(function (request, response) {
 			});
 		
 			request.on("end", function() {
+            	active_tasks[id].response.writeHead(200, {
+        		  'Content-Type'  : content_type
+		        });
+
 				active_tasks[id].response.end(data);
 				delete active_tasks[id]
 				total_active_tasks = total_active_tasks - 1;
 				response.end("OK!\n");
 				total_requests_answered = total_requests_answered + 1;
 			});
-
 		}
 	}
 }).listen(base_port+2);

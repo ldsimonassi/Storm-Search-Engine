@@ -96,10 +96,11 @@ public class ReadItemDataBolt implements IRichBolt {
 		Item i;
 		try {
 			i = readItem(itemId);
+			System.out.println("Item readed "+ itemId+" ["+i+"]");
 			if(i==null) {
 				collector.emit(new Values(origin, requestId, itemId, null));
 			} else {
-				collector.emit(new Values(origin, requestId, itemId, su.toByteArray(i)));
+				collector.emit(new Values(origin, requestId, itemId, su.itemToByteArray(i)));
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
