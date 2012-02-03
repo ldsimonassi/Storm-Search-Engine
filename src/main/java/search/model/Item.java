@@ -41,6 +41,6 @@ public class Item implements Serializable {
 	}
 
 	public boolean greaterThan(Item itmB) {
-		return itmB.price>price;
+		return itmB.price<price;
 	}
 }

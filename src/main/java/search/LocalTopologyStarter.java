@@ -1,7 +1,5 @@
 package search;
 
-import java.util.Enumeration;
-
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
@@ -10,7 +8,6 @@ import backtype.storm.LocalCluster;
 import backtype.storm.generated.StormTopology;
 
 public class LocalTopologyStarter {
-	
     public static void main(String[] args) {
     	Logger.getRootLogger().setLevel(Level.ERROR);
     	Logger.getLogger("org.apache.http.wire").setLevel(Level.ERROR);
