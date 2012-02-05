@@ -1,4 +1,4 @@
-import search.LocalTopologyStarter
+import search.utils.LocalTopologyStarter
 import search.SearchEngineTopologyStarter
 import backtype.storm.LocalCluster;
 import groovyx.net.http.ContentType;
@@ -53,7 +53,7 @@ public abstract class AbstractStormTest extends Assert {
 		toSend['title'] = title
 		toSend['price'] = price
 
-		println "Posting item [${document}] [${toSend}]"
+		println "Posting item [	${document}] [${toSend}]"
         def resp= itemsApiClient.post(path : document,
                                       body: toSend,
                                       requestContentType: ContentType.JSON)

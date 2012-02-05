@@ -1,6 +1,8 @@
 package search;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -8,6 +10,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import search.model.Item;
+import search.utils.SerializationUtils;
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.IRichBolt;
@@ -16,7 +19,7 @@ import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 
-public class JoinSortBolt implements IRichBolt {
+public class MergeBolt implements IRichBolt {
 	private static final long serialVersionUID = 1L;
 	
 	@SuppressWarnings("rawtypes")
@@ -29,7 +32,7 @@ public class JoinSortBolt implements IRichBolt {
 	
 	
 	public static class Merger {
-		ArrayList<Item> items;
+		List<Item> items;
 		int size;
 		int totalMerged;
 		long start;
@@ -65,48 +68,26 @@ public class JoinSortBolt implements IRichBolt {
 			return totalMerged;
 		}
 
-		public void merge(List<Item> newItems){
+		public void merge(List<Item> newItems) {
 			totalMerged++;
-			if(items.size()==0){
-				int copy= newItems.size()<size?newItems.size():size;
-				for(int i=0; i < copy;i++){
-					items.add(i, newItems.get(i));
+			ArrayList<Item> chgList= new ArrayList<Item>(newItems.size()+items.size());
+			chgList.addAll(newItems);
+			chgList.addAll(items);
+			Collections.sort(chgList, new Comparator<Item>() {
+				@Override
+				public int compare(Item i1, Item i2) {
+					if(i1.price > i2.price)
+						return -1;
+					else
+						return 1;
 				}
-			} else {
-				ArrayList<Item> newList= new ArrayList<Item>();
-				int iA = 0;
-				int iB = 0;
-				for(int i=0; i<size; i++){
-					boolean overA= iA>=items.size();
-					boolean overB= iB>=newItems.size();
-					
-					if(!overB && !overA){
-						Item itmA= items.get(iA);
-						Item itmB= newItems.get(iB);
-						if(itmA.greaterThan(itmB)){
-							iA++;
-							newList.add(i, itmA);
-						} else {
-							iB++;
-							newList.add(i, itmB);
-						}
-					} else if(overA && overB) {
-						break;
-					} else if(overA){
-						Item itmB= newItems.get(iB);
-						iB++;
-						newList.add(i, itmB);
-					} else { //overB
-						Item itmA= items.get(iA);
-						iA++;
-						newList.add(i, itmA);	
-					}
-				}
-				
-				items= newList;
-			}
+			});
+			if(chgList.size() < size)
+				items = chgList;
+			else
+				items = chgList.subList(0, size);
 		}
-		
+
 		@Override
 		public String toString() {
 			return items.toString();
@@ -139,7 +120,7 @@ public class JoinSortBolt implements IRichBolt {
 				ArrayList<Merger> mergers;
 				
 				synchronized (inCourse) {
-					mergers= new ArrayList<JoinSortBolt.Merger>(inCourse.values());
+					mergers= new ArrayList<MergeBolt.Merger>(inCourse.values());
 				}
 				
 				for (Merger merger : mergers) {
@@ -157,8 +138,7 @@ public class JoinSortBolt implements IRichBolt {
 	public void execute(Tuple input) {
 		String origin= input.getString(0);
 		String requestId= input.getString(1);
-		
-		//String query= input.getString(2);
+
 		byte[] binary= input.getBinary(3);
 		List<Item> shardResults= su.fromByteArray(binary);
 
@@ -181,7 +161,6 @@ public class JoinSortBolt implements IRichBolt {
 
 		if(merger.getTotalMerged()>=totalShards){
 			finish(merger);
-			
 		}		
 	}
 	
@@ -196,30 +175,5 @@ public class JoinSortBolt implements IRichBolt {
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
 		declarer.declare(new Fields("origin", "requestId", "results"));
-	}
-	
-	public static void main(String[] args) {
-		
-		ArrayList<Item> a= new ArrayList<Item>();
-		ArrayList<Item> b= new ArrayList<Item>();
-		ArrayList<Item> c= new ArrayList<Item>();
-		long id=0;
-		for(int i=0; i<10;i++){
-			a.add(new Item(id, "a", i));
-			id++;
-			b.add(new Item(id, "b", i+0.25));
-			id++;
-			c.add(new Item(id, "c", i+0.5));
-			id++;
-		}
-		
-		Merger m= new Merger("localhost", "44", 5);
-		
-		m.merge(a);
-		System.out.println(m);
-		m.merge(b);
-		System.out.println(m);
-		m.merge(c);
-		System.out.println(m);
 	}
 }

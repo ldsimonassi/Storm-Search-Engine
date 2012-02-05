@@ -59,10 +59,6 @@ public class QueriesSpout implements IRichSpout {
 	@Override
 	public void close() {
 	}
-
-	
-	
-
 	
 	@Override
 	public void nextTuple() {

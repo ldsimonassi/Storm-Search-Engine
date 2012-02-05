@@ -1,4 +1,4 @@
-package search;
+package search.utils;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

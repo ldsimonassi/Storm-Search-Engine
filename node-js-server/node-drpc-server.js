@@ -33,8 +33,8 @@ Array.prototype.display = function() {
 }
 
 // Parameters
-var topology_timeout= 2000;
-var claim_timeout= 2000;
+var topology_timeout= 20000;
+var claim_timeout= 20000;
 var base_port = 8080;
 var content_type = 'application/json; charset=utf-8';
 

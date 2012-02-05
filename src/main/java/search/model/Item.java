@@ -8,9 +8,11 @@ import org.msgpack.annotation.Message;
 public class Item implements Serializable {
 	private static final long serialVersionUID = 1L;
 
-
+	public long id;
+	public String title;
+	public double price;
+	
 	public Item() {
-		
 	}
 	
 	public Item(long id, String title, double price) {
@@ -18,10 +20,6 @@ public class Item implements Serializable {
 		this.title= title;
 		this.price= price;
 	}
-	
-	public long id;
-	public String title;
-	public double price;
 	
 	@Override
 	public boolean equals(Object obj) {

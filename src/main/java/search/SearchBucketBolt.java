@@ -8,6 +8,7 @@ import java.util.Map;
 
 import search.model.Item;
 import search.model.ItemsShard;
+import search.utils.SerializationUtils;
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.IRichBolt;

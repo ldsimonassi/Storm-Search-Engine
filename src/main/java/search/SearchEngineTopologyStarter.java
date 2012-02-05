@@ -18,7 +18,7 @@ public class SearchEngineTopologyStarter {
 		
 		builder.setBolt("queries-processor", new SearchBucketBolt(), 10).allGrouping("queries-spout").allGrouping("read-item-data");
 		
-		builder.setBolt("join-sort", new JoinSortBolt(), 3).fieldsGrouping("queries-processor", new Fields("origin", "requestId"));
+		builder.setBolt("join-sort", new MergeBolt(), 3).fieldsGrouping("queries-processor", new Fields("origin", "requestId"));
 		builder.setBolt("answer-query", new AnswerQueryBolt(), 2).fieldsGrouping("join-sort", new Fields("origin"));
 
 		return builder.createTopology();

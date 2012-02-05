@@ -1,7 +1,9 @@
-package search;
+package search.utils;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+
+import search.SearchEngineTopologyStarter;
 
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
