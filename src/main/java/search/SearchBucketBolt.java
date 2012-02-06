@@ -6,6 +6,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.log4j.Logger;
+
 import search.model.Item;
 import search.model.ItemsShard;
 import search.utils.SerializationUtils;
@@ -20,6 +22,7 @@ import backtype.storm.tuple.Values;
 public class SearchBucketBolt implements IRichBolt {
 	private static final long serialVersionUID = 1L;
 
+	Logger log;
 	OutputCollector collector;
 	@SuppressWarnings("rawtypes")
 	Map stormConf;
@@ -36,6 +39,7 @@ public class SearchBucketBolt implements IRichBolt {
 	public void prepare(@SuppressWarnings("rawtypes") Map stormConf, 
 						TopologyContext context,
 						OutputCollector collector) {
+		log = Logger.getLogger(this.getClass());
 		this.stormConf= stormConf;
 		this.context= context;
 		this.collector= collector;
@@ -58,14 +62,14 @@ public class SearchBucketBolt implements IRichBolt {
 			//String requestId= input.getString(1);
 			int itemId= input.getInteger(2);
 			if(isMine(itemId)){
-				System.out.println("Mine! "+currentShard+"/"+totalShards);
+				log.debug("Mine! "+currentShard+"/"+totalShards);
 				byte[] ba = input.getBinary(3);
 				if(ba==null) {
-					System.out.println("Removing item id:"+itemId);
+					log.debug("Removing item id:"+itemId);
 					shard.remove(itemId);
 				} else {
 					Item i= su.itemFromByteArray(ba);
-					System.out.println("Updating item index: "+i);
+					log.debug("Updating item index: "+i);
 					shard.update(i);
 				}
 			}
@@ -80,7 +84,7 @@ public class SearchBucketBolt implements IRichBolt {
 		
 		// Execute query with local data scope
 		List<Item> results= executeLocalQuery(query, 5);
-		System.out.println("Searching ["+ query +"] in shard "+currentShard +" "+results.size()+" results found");
+		log.debug("Searching ["+ query +"] in shard "+currentShard +" "+results.size()+" results found");
 		// Send data to next step: Merger
 		collector.emit(new Values(origin, requestId, query, su.toByteArray(results)));
 	}

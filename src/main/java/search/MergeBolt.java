@@ -30,7 +30,6 @@ public class MergeBolt implements IRichBolt {
 	HashMap<String, Merger> inCourse= new HashMap<String, Merger>();
 	SerializationUtils su;
 	
-	
 	public static class Merger {
 		List<Item> items;
 		int size;
@@ -163,7 +162,6 @@ public class MergeBolt implements IRichBolt {
 			finish(merger);
 		}		
 	}
-	
 	
 	protected void finish(Merger merger){
 		collector.emit(new Values(merger.getOrigin(), merger.getRequestId(), su.toByteArray(merger.getResults())));

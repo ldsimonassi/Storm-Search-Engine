@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.StringTokenizer;
 
+import org.apache.log4j.Logger;
+
 /**
  *
  * This is a single threaded class intended to store a small number of documents.
@@ -17,6 +19,7 @@ import java.util.StringTokenizer;
  * @author ldsimonassi
  */
 public class ItemsShard {
+	Logger log = Logger.getLogger(this.getClass());
 	HashMap<String, HashSet<Item>> index;
 	HashMap<Item, Item> myItems;
 	
@@ -104,14 +107,13 @@ public class ItemsShard {
 		if(items==null){
 			return emptySet;
 		}
-		//System.out.println("\tWord: ["+word +"] res:"+items.size());
+		log.debug("\tWord: ["+word +"] res:"+items.size());
 		return items;
 	}
 	
 	
 	public Set<Item> getItemsContainingWords(String words){
-		//System.out.println("Query: ["+words+"]");
-	
+		log.debug("Query: ["+words+"]");
 		StringTokenizer strTok= new StringTokenizer(words, "-", false);
 		HashSet<Item> result= new HashSet<Item>();
 		boolean first= true;
@@ -126,7 +128,7 @@ public class ItemsShard {
 				for (Iterator<Item> iterator = result.iterator(); iterator.hasNext();) {
 					Item item= iterator.next();
 					if(!newResults.contains(item)){
-						//System.out.println("\t\tremoving "+item);
+						log.debug("\t\tremoving "+item);
 						iterator.remove();
 					}
 				}

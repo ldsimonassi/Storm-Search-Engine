@@ -1,31 +1,21 @@
 package search;
 
-import java.io.InputStream;
 import java.util.Map;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.conn.SingleClientConnManager;
-
 import search.utils.SerializationUtils;
-
+import storm.utils.AbstractAnswerBolt;
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
-import backtype.storm.topology.IRichBolt;
-import backtype.storm.topology.OutputFieldsDeclarer;
 import backtype.storm.tuple.Tuple;
 
-public class AnswerItemsFeedBolt implements IRichBolt {
+public class AnswerItemsFeedBolt extends AbstractAnswerBolt {
 	private static final long serialVersionUID = 1L;
 
 	@SuppressWarnings("rawtypes")
 	@Override
 	public void prepare(Map stormConf, TopologyContext context,
 			OutputCollector collector) {
-		client= new DefaultHttpClient(new SingleClientConnManager());
+		super.prepare(stormConf, context, collector);
 		this.su= new SerializationUtils();
 	}
 
@@ -35,38 +25,11 @@ public class AnswerItemsFeedBolt implements IRichBolt {
 	public void execute(Tuple input) {
 		String origin= input.getString(0);
 		String requestId= input.getString(1);
-		sendBack(origin, requestId);
-	}
-	
-	
-	HttpClient client;
-	
-	private void sendBack(String origin, String id){
-		String to= "http://"+origin+":9092/?id="+id;
-		System.out.println("Answering feed:"+to);
-		HttpPost post= new HttpPost(to);
-		try {
-			StringEntity entity= new StringEntity("OK");
-			post.setEntity(entity);
-			
-
-			HttpResponse response= client.execute(post);
-			
-			InputStream is= response.getEntity().getContent();
-			
-			is.close();
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		sendBack(origin, requestId, "OK");
 	}
 
 	@Override
-	public void cleanup() {
-	}
-
-	@Override
-	public void declareOutputFields(OutputFieldsDeclarer declarer) {
-		// No output, this is a terminal Bolt.
+	protected int getDestinationPort() {
+		return 9092;
 	}
 }

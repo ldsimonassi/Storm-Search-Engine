@@ -10,6 +10,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.SingleClientConnManager;
+import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
@@ -25,7 +26,7 @@ import backtype.storm.tuple.Values;
 
 public class ReadItemDataBolt implements IRichBolt {
 	private static final long serialVersionUID = 1L;
-
+	Logger log; 
 	OutputCollector collector;
 	@SuppressWarnings("rawtypes")
 	Map stormConf;
@@ -39,6 +40,7 @@ public class ReadItemDataBolt implements IRichBolt {
 	public void prepare(@SuppressWarnings("rawtypes") Map stormConf, 
 						TopologyContext context,
 						OutputCollector collector) {
+		log = Logger.getLogger(this.getClass());
 		this.stormConf = stormConf;
 		this.context = context;
 		this.collector = collector;
@@ -55,7 +57,7 @@ public class ReadItemDataBolt implements IRichBolt {
 		HttpResponse response;
 		BufferedReader reader= null;
 		String url= "http://"+itemsApiHost+"/"+id+".json";
-		System.out.println("Reading item data:["+url+"]");
+		log.debug("Reading item data:["+url+"]");
 		httpget = new HttpGet(url);
 		try {
 			response = httpclient.execute(httpget);
@@ -92,12 +94,12 @@ public class ReadItemDataBolt implements IRichBolt {
 	public void execute(Tuple input) {
 		String origin = input.getString(0);
 		String requestId = input.getString(1);
-		int itemId = input.getInteger(2);
+		int itemId = Integer.valueOf(input.getString(2));
 
 		Item i;
 		try {
 			i = readItem(itemId);
-			System.out.println("Item readed "+ itemId+" ["+i+"]");
+			log.debug("Item readed "+ itemId+" ["+i+"]");
 			if(i==null) {
 				collector.emit(new Values(origin, requestId, itemId, null));
 			} else {
@@ -115,21 +117,5 @@ public class ReadItemDataBolt implements IRichBolt {
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
 		declarer.declare(new Fields("origin", "requestId", "itemId", "data"));
-	}
-	
-	
-	public static void main(String[] args) {
-		  System.out.println("=======decode=======");
-          
-		  String s="{\"id\":1, \"title\":\"great dvd player\", \"price\": 1500}";
-		  Object obj=JSONValue.parse(s);
-		  JSONObject item=(JSONObject)obj;
-		  System.out.println(item.get("id").getClass());
-		  System.out.println(item.get("title").getClass());
-		  System.out.println(item.get("price").getClass());
-		  
-		  System.out.println(item.get("id"));
-		  System.out.println(item.get("title"));
-		  System.out.println(item.get("price"));
 	}
 }

@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.msgpack.MessagePack;
 import org.msgpack.packer.Packer;
 import org.msgpack.unpacker.Unpacker;
@@ -14,6 +15,8 @@ import search.model.Item;
 
 
 public class SerializationUtils {
+	MessagePack msgpack = new MessagePack();
+	Logger log= Logger.getLogger(this.getClass());
 
 	public byte[] toByteArray(List<Item> list) {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -28,20 +31,16 @@ public class SerializationUtils {
 			}
 	        return out.toByteArray();
         } catch (Exception ex) {
-        	ex.printStackTrace();
+        	log.error(ex);
         	return null;
         } finally {
         	try {
 				out.close();
 			} catch (IOException e) {
-				e.printStackTrace();
+				log.error(e);
 			}
         }
 	}
-	
-	MessagePack msgpack = new MessagePack();
-
-
 	
 	public Item itemFromByteArray(byte[] binary) {
 		ByteArrayInputStream in = new ByteArrayInputStream(binary);
@@ -53,18 +52,16 @@ public class SerializationUtils {
 			i.id= unpacker.readLong();
 			return i;
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error(e);
 			return null;
 		} finally {
 			try {
 				in.close();
 			} catch (IOException e) {
-				e.printStackTrace();
+				log.error(e);
 			}
 		}
 	}
-
-	
 	
 	public byte[] itemToByteArray(Item itm) {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -76,20 +73,16 @@ public class SerializationUtils {
 
 	        return out.toByteArray();
         } catch (Exception ex) {
-        	ex.printStackTrace();
+        	log.error(ex);
         	return null;
         } finally {
         	try {
 				out.close();
 			} catch (IOException e) {
-				e.printStackTrace();
+				log.error(e);
 			}
         }
 	}
-	
-	
-	
-	
 	
 	public List<Item> fromByteArray(byte[] binary) {
 		ByteArrayInputStream in = new ByteArrayInputStream(binary);
@@ -107,13 +100,13 @@ public class SerializationUtils {
 			}
 			return list;
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error(e);
 			return null;
 		} finally {
 			try {
 				in.close();
 			} catch (IOException e) {
-				e.printStackTrace();
+				log.error(e);
 			}
 		}
 	}
