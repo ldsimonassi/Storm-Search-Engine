@@ -1,8 +1,11 @@
+package individual
+
 import org.junit.Test
 import search.model.Item
 import search.model.ItemsShard
+import org.junit.Assert
 
-public class SearchBucketTest extends AbstractStormTest {
+public class SearchBucketTest extends Assert {
 	@Test
 	public void searchShard() {
 		ItemsShard myShard= new ItemsShard(20);

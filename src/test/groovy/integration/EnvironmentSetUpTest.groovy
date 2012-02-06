@@ -1,6 +1,7 @@
+package integration
 import org.junit.Test;
 
-class PreparationTest extends AbstractStormTest {
+class EnvironmentSetUpTest extends AbstractSearchIntegrationTest {
 
 	@Test
 	public void itemsApiExists(){

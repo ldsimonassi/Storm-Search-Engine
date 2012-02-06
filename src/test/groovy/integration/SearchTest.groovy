@@ -1,6 +1,7 @@
+package integration
 import org.junit.Test;
 
-public class SearchTest extends AbstractStormTest {
+public class SearchTest extends AbstractSearchIntegrationTest {
 
 	@Test
 	public void newsFeedTest() {

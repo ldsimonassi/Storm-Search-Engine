@@ -1,3 +1,5 @@
+package integration
+
 import search.utils.LocalTopologyStarter
 import search.SearchEngineTopologyStarter
 import backtype.storm.LocalCluster;
@@ -8,7 +10,7 @@ import org.junit.After
 import org.junit.Assert
 
 
-public abstract class AbstractStormTest extends Assert {
+public abstract class AbstractSearchIntegrationTest extends Assert {
     def itemsApiClient
     def searchEngineApiClient
     def newsFeedApiClient
@@ -37,15 +39,16 @@ public abstract class AbstractStormTest extends Assert {
         newsFeedApiClient     = new RESTClient('http://127.0.0.1:9090')
 		clearItemsApi()
     }
-	
+    
+    
+    /**
+     * Integration testing helpers.
+     */
 	public void clearItemsApi() {
 		def resp= itemsApiClient.delete(path : "/")
 		assertEquals(resp.status, 200)
 	}
 
-	/**
-	 *  Testing Utilities...
-	 **/
 	public void addItem(int id, String title, int price) {
 		def document = "/${id}.json"
 		def toSend = [:]

@@ -1,10 +1,11 @@
+package individual
 import org.junit.Test;
 import search.MergeBolt.Merger
 import search.model.Item
 import java.util.ArrayList
+import org.junit.Assert
 
-
-public class MergerTest extends AbstractStormTest {
+public class MergerTest extends Assert  {
 
 	@Test
 	public void mergerMaintainsMaxSize() {
