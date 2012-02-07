@@ -26,19 +26,25 @@ public abstract class AbstractClientSpout implements IRichSpout {
 	public static final int TIMEOUT= 1000;
 	transient Logger log;
 	transient HttpClient httpclient;
+	transient LinkedBlockingQueue<Request> pendingRequests;
+	transient HttpGet httpget;
+	transient Thread t;
+	transient boolean isDying = false;
 	
 	@SuppressWarnings("rawtypes")
 	Map conf;
 	TopologyContext context;
 	SpoutOutputCollector collector;
-	LinkedBlockingQueue<Request> pendingRequests;
-	HttpGet httpget;
-	int id=0;
-	Thread t;
-	boolean isDying = false;
+
+	protected abstract String getPullHost();
+	protected abstract int getMaxPull();
 
 	/**
-	 * Open a thread for each processed server.
+	 * Prepare the spout to run, means:
+	 * 	- Pulling thread startup.
+	 *  - Queue creation.
+	 *  - Logger creation.
+	 *  - HttpClient creation/reconnection.
 	 */
 	@Override
 	public void open(@SuppressWarnings("rawtypes") Map conf, TopologyContext context,
@@ -68,8 +74,6 @@ public abstract class AbstractClientSpout implements IRichSpout {
 		t.start();
 	}
 
-	protected abstract String getPullHost();
-	protected abstract int getMaxPull();
 	
 	private void reconnect() {
 		httpclient = new DefaultHttpClient(new SingleClientConnManager()); 
@@ -88,6 +92,8 @@ public abstract class AbstractClientSpout implements IRichSpout {
 		Request req;
 		try {
 			req = pendingRequests.poll(1, TimeUnit.SECONDS);
+			if(req==null)
+				return;
 			collector.emit(new Values(req.origin, req.id, req.content));
 		} catch (InterruptedException e) {
 			log.error("Polling interrrupted", e);
@@ -120,10 +126,9 @@ public abstract class AbstractClientSpout implements IRichSpout {
 				if(req.id == null || req.content==null)
 					break;
 				else {
-					log.debug("ID:"+id);
+					log.debug("ID:"+req.id);
 					log.debug("Content:"+req.content);
 					req.content = req.content.substring(1);
-					// I don't send the message id object, so I disable the ackers mechanism
 					boolean inserted = pendingRequests.offer(req, 10, TimeUnit.SECONDS);
 					if(!inserted) 
 						log.error("pendingRequests queue is full, discarding request ["+req+"]");
