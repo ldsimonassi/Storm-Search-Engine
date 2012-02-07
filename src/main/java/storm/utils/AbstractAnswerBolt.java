@@ -18,12 +18,12 @@ import backtype.storm.topology.OutputFieldsDeclarer;
 
 public abstract class AbstractAnswerBolt implements IRichBolt {
 	private static final long serialVersionUID = 1L;
-	transient Logger log;
+	protected transient Logger log;
 	transient HttpClient client;
 
 	protected void sendBack(String origin, String id, String content){
 		String to= "http://"+origin+":"+getDestinationPort()+"/?id="+id;
-		log.debug("Answering feed:"+to);
+		log.debug("Answering to:"+to);
 		HttpPost post= new HttpPost(to);
 		try {
 			StringEntity entity= new StringEntity(content);

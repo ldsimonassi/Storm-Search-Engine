@@ -7,7 +7,7 @@ public class ClientSpout extends AbstractClientSpout {
 
 	@Override
 	protected String getPullHost() {
-		return "localhost";
+		return "localhost:8081";
 	}
 
 	@Override

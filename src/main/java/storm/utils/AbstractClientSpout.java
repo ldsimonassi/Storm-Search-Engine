@@ -3,6 +3,8 @@ package storm.utils;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.Map;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -29,9 +31,11 @@ public abstract class AbstractClientSpout implements IRichSpout {
 	Map conf;
 	TopologyContext context;
 	SpoutOutputCollector collector;
-	
+	LinkedBlockingQueue<Request> pendingRequests;
 	HttpGet httpget;
 	int id=0;
+	Thread t;
+	boolean isDying = false;
 
 	/**
 	 * Open a thread for each processed server.
@@ -43,7 +47,25 @@ public abstract class AbstractClientSpout implements IRichSpout {
 		this.conf= conf;
 		this.context= context;
 		this.collector= collector;
+		this.pendingRequests = new LinkedBlockingQueue<Request>(1000);
+		this.isDying = false;
 		reconnect();
+		t = new Thread("ClientSpout["+this.getClass().getName()+"] pulling:"+"http://"+getPullHost()+"/?max="+getMaxPull()){
+			@Override
+			public void run() {
+				while(true) {
+					try {
+						if(isDying)
+							return ;
+						executeGet();
+					} catch(Throwable t) {
+						log.error("Error in executeGet", t);
+						try {Thread.sleep(1000);} catch (InterruptedException e) {}
+					}
+				}
+			}
+		};
+		t.start();
 	}
 
 	protected abstract String getPullHost();
@@ -56,37 +78,66 @@ public abstract class AbstractClientSpout implements IRichSpout {
 
 	@Override
 	public void close() {
+		isDying = true;
+		pendingRequests.clear();
+		log.info("Finishing client spout ["+this.getClass().getName()+"]");
 	}
 	
 	@Override
 	public void nextTuple() {
+		Request req;
+		try {
+			req = pendingRequests.poll(1, TimeUnit.SECONDS);
+			collector.emit(new Values(req.origin, req.id, req.content));
+		} catch (InterruptedException e) {
+			log.error("Polling interrrupted", e);
+		}
+	}
+	
+	public static class Request {
+		public String id;
+		public String origin;
+		public String content;
+	}
+	
+	public void executeGet(){
 		HttpResponse response;
 		BufferedReader reader= null;
 		try {
+			log.debug("Executing Spout GET HTTP METHOD");
 			response = httpclient.execute(httpget);
+			log.debug("Executed!");
 			HttpEntity entity = response.getEntity();
 			reader= new BufferedReader(new InputStreamReader(entity.getContent()));
 			String origin= reader.readLine();
+			log.debug("Origin:"+origin);
 			while(true) {
-				String id= reader.readLine();
-				String requestContent= reader.readLine();
-				if(id==null || requestContent==null)
+				Request req= new Request();
+				req.origin = origin;
+				req.id = reader.readLine();
+				req.content = reader.readLine();
+				
+				if(req.id == null || req.content==null)
 					break;
 				else {
-					requestContent = requestContent.substring(1);
+					log.debug("ID:"+id);
+					log.debug("Content:"+req.content);
+					req.content = req.content.substring(1);
 					// I don't send the message id object, so I disable the ackers mechanism
-					collector.emit(new Values(origin, id, requestContent));
+					boolean inserted = pendingRequests.offer(req, 10, TimeUnit.SECONDS);
+					if(!inserted) 
+						log.error("pendingRequests queue is full, discarding request ["+req+"]");
 				}
 			} 
 		} catch (Exception e) {
-			log.error(e);
+			log.error("Error in GET Method of client spout", e);
 			reconnect();
 		} finally {
 			if(reader!=null)
 				try {
 					reader.close();
 				} catch (Exception e) {
-					log.error(e);
+					log.error("Error closing reader, finally block", e);
 				}
 		}
 	}
