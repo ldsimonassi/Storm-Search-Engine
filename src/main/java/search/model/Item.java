@@ -19,7 +19,7 @@ public class Item implements Serializable {
 		this.title= title;
 		this.price= price;
 	}
-	
+
 	@Override
 	public boolean equals(Object obj) {
 		Item other= (Item)obj;
@@ -35,9 +35,5 @@ public class Item implements Serializable {
 	@Override
 	public String toString() {
 		return "id:"+id+ " title: "+title+ " price:"+price;
-	}
-
-	public boolean greaterThan(Item itmB) {
-		return itmB.price<price;
 	}
 }

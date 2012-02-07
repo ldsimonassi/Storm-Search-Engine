@@ -1,4 +1,4 @@
-package search;
+package simplesearch;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,7 +19,7 @@ import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 
-public class SearchBucketBolt implements IRichBolt {
+public class SearchBolt implements IRichBolt {
 	private static final long serialVersionUID = 1L;
 
 	Logger log;
@@ -43,9 +43,6 @@ public class SearchBucketBolt implements IRichBolt {
 		this.stormConf= stormConf;
 		this.context= context;
 		this.collector= collector;
-		currentShard = context.getThisTaskIndex();
-		String myId = context.getThisComponentId();
-		totalShards = context.getRawTopology().get_bolts().get(myId).get_common().get_parallelism_hint();
 		su = new SerializationUtils();
 		shard = new ItemsContainer(10000); 
 	}

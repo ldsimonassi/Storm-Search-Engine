@@ -13,22 +13,20 @@ import java.util.StringTokenizer;
 import org.apache.log4j.Logger;
 
 /**
- *
- * This is a single threaded class intended to store a small number of documents.
- * 
- * @author ldsimonassi
+ * This is a single threaded class intended to store a number of documents that must fit in memory.
  */
-public class ItemsShard {
+public class ItemsContainer {
 	Logger log = Logger.getLogger(this.getClass());
 	HashMap<String, HashSet<Item>> index;
 	HashMap<Item, Item> myItems;
+	Set<Item> emptySet= Collections.emptySet();
 	
-	public ItemsShard(int initialCapacity) {
+	public ItemsContainer(int initialCapacity) {
 		index = new HashMap<String, HashSet<Item>>(initialCapacity, 0.9f);
 		myItems= new HashMap<Item, Item>(initialCapacity, 0.9f);
 	}
 	
-	public synchronized void add(Item i) {
+	public void add(Item i) {
 		if(myItems.containsKey(i))
 			update(i);
 		
@@ -47,10 +45,7 @@ public class ItemsShard {
 	
 
 	public void update(Item i) {
-		//TODO Implement a more efficient, but more complex update operation (if necessary).
-		// Update only if title changed
 		Item myItem= myItems.get(i);
-		
 		if(myItem==null)
 			add(i);
 		else if(!i.title.equals(myItem.title)){
@@ -58,6 +53,7 @@ public class ItemsShard {
 			add(i);
 		}
 	}
+	
 	public void remove(int itemId) {
 		Item i= new Item(itemId, "", 0);
 		remove(i);
@@ -83,7 +79,6 @@ public class ItemsShard {
 		}
 	}
 
-	
 	private List<String> getItemWords(Item i) {
 		ArrayList<String> ret = new ArrayList<String>();
 		StringTokenizer strTok = new StringTokenizer(i.title, " ", false);
@@ -93,15 +88,7 @@ public class ItemsShard {
 		}
 		return ret;
 	}
-
 	
-	
-	Set<Item> emptySet= Collections.emptySet();
-	/**
-	 * This method is highly concurrent
-	 * @param word
-	 * @return
-	 */
 	public Set<Item> getItemsContainingWord(String word) {
 		Set<Item> items= index.get(word);
 		if(items==null){
@@ -110,7 +97,6 @@ public class ItemsShard {
 		log.debug("\tWord: ["+word +"] res:"+items.size());
 		return items;
 	}
-	
 	
 	public Set<Item> getItemsContainingWords(String words){
 		log.debug("Query: ["+words+"]");
