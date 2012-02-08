@@ -21,19 +21,13 @@ import backtype.storm.tuple.Values;
 
 public class SearchBolt implements IRichBolt {
 	private static final long serialVersionUID = 1L;
-
 	Logger log;
 	OutputCollector collector;
 	@SuppressWarnings("rawtypes")
 	Map stormConf;
 	TopologyContext context;
-	int currentShard;
-	int totalShards;
-	int base_id;
 	SerializationUtils su;
-	ItemsContainer shard;
-	
-	
+	ItemsContainer myItems;
 	
 	@Override
 	public void prepare(@SuppressWarnings("rawtypes") Map stormConf, 
@@ -44,59 +38,60 @@ public class SearchBolt implements IRichBolt {
 		this.context= context;
 		this.collector= collector;
 		su = new SerializationUtils();
-		shard = new ItemsContainer(10000); 
+		myItems = new ItemsContainer(10000); 
+		populateItems();
 	}
-	
-	private boolean isMine(int itemId) {
-		int remain = itemId % totalShards; 
-		return remain == currentShard; 
+
+	private void populateItems() {
+		myItems.add(new Item(0, "old dvd player", Math.random()*Math.random()*100));
+		myItems.add(new Item(1, "new cell phone", Math.random()*100));
+		myItems.add(new Item(2, "old pirates coin", Math.random()*100));
+		myItems.add(new Item(3, "fashion sun glasses", Math.random()*100));
+		myItems.add(new Item(4, "electric guitar", Math.random()*100));
+		myItems.add(new Item(5, "expresso coffe machine", Math.random()*100));
+		myItems.add(new Item(6, "cheap cell phone case", Math.random()*100));
+		myItems.add(new Item(7, "fast laptop computer", Math.random()*100));
+		myItems.add(new Item(8, "small laptop computer", Math.random()*100));
+		myItems.add(new Item(9, "universal remote control", Math.random()*100));
+		myItems.add(new Item(10, "universal serial bus video card", Math.random()*100));
+		myItems.add(new Item(11, "vintage vcr player", Math.random()*100));
+		myItems.add(new Item(12, "new bluray player", Math.random()*100));
+		myItems.add(new Item(13, "almost new games console", Math.random()*100));
+		myItems.add(new Item(14, "portable air conditioner", Math.random()*100));
+		myItems.add(new Item(15, "portable television set", Math.random()*100));
+		myItems.add(new Item(16, "big led full hd television set", Math.random()*100));
+		myItems.add(new Item(17, "powerful microwave oven", Math.random()*100));
+		myItems.add(new Item(18, "brand new car", Math.random()*100));
+		myItems.add(new Item(19, "brand new suv", Math.random()*100));
+		myItems.add(new Item(20, "brand new watch", Math.random()*100));
+		myItems.add(new Item(21, "used car", Math.random()*100));
+		myItems.add(new Item(22, "used suv", Math.random()*100));
+		myItems.add(new Item(23, "new home theater audio system", Math.random()*100));
+		myItems.add(new Item(24, "new high speed gamer computer", Math.random()*100));
+		myItems.add(new Item(25, "new small computer charger", Math.random()*100));
+		myItems.add(new Item(26, "car cell phone adapter", Math.random()*100));
 	}
 
 	@Override
 	public void execute(Tuple input) {
-		if(input.getSourceComponent().equals("read-item-data")){
-			//String origin= input.getString(0);
-			//String requestId= input.getString(1);
-			int itemId= input.getInteger(2);
-			if(isMine(itemId)){
-				log.debug("Mine! "+currentShard+"/"+totalShards);
-				byte[] ba = input.getBinary(3);
-				if(ba==null) {
-					log.debug("Removing item id:"+itemId);
-					shard.remove(itemId);
-				} else {
-					Item i= su.itemFromByteArray(ba);
-					log.debug("Updating item index: "+i);
-					shard.update(i);
-				}
-			}
-			return ;
-		}
-
-		// Get request routing information
 		String origin= input.getString(0);
 		String requestId= input.getString(1);
 		String query= input.getString(2);
-		
-		
-		// Execute query with local data scope
-		List<Item> results= executeLocalQuery(query, 5);
-		log.debug("Searching ["+ query +"] in shard "+currentShard +" "+results.size()+" results found");
-		// Send data to next step: Merger
-		collector.emit(new Values(origin, requestId, query, su.toByteArray(results)));
+		List<Item> results= executeQuery(query, 5);
+		log.debug("Searching ["+ query +"]:"+results.size()+" results found");
+		collector.emit(new Values(origin, requestId, su.toByteArray(results)));
 	}
 
-	private List<Item> executeLocalQuery(String query, int quantity) {
-		List<Item> items= new ArrayList<Item>(shard.getItemsContainingWords(query));
-		
+	private List<Item> executeQuery(String query, int quantity) {
+		List<Item> items= new ArrayList<Item>(myItems.getItemsContainingWords(query));
 		Collections.sort(items, new Comparator<Item>() {
 			@Override
 			public int compare(Item o1, Item o2) {
 				double diff= o1.price-o2.price;
 				if(diff>0)
-					return 1;
-				else
 					return -1;
+				else
+					return 1;
 			}
 		});
 		
@@ -111,10 +106,6 @@ public class SearchBolt implements IRichBolt {
 
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
-		declarer.declare(new Fields("origin", "requestId", "query", "shardMatches"));
+		declarer.declare(new Fields("origin", "requestId", "results"));
 	}
-	
-	
-	
-	
 }
