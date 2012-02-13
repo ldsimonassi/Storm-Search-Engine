@@ -76,7 +76,7 @@ public class ReadItemDataBolt implements IRichBolt {
 			} else
 				throw new Exception(response.getStatusLine().getStatusCode()+" is not a valid HTTP code for this response");
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Error reading item "+id, e);
 			reconnect();
 			throw new Exception("Error reading item ["+id+"]", e);
 		} finally {
@@ -84,7 +84,7 @@ public class ReadItemDataBolt implements IRichBolt {
 				try {
 					reader.close();
 				} catch (Exception e) {
-					e.printStackTrace();
+					log.error(e);
 				}
 			}
 		}
@@ -106,7 +106,7 @@ public class ReadItemDataBolt implements IRichBolt {
 				collector.emit(new Values(origin, requestId, itemId, su.itemToByteArray(i)));
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Error ["+origin+"] ["+requestId+"] ["+itemId+"]", e);
 		}
 	}
 

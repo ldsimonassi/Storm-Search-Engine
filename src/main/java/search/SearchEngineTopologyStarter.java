@@ -10,16 +10,20 @@ public class SearchEngineTopologyStarter {
 	public static StormTopology createTopology() {
 		TopologyBuilder builder= new TopologyBuilder();
 
+		/**
+		 * Search flow:
+		 */
 		builder.setSpout("queries-spout", new QueriesSpout(), 1);
-
+		builder.setBolt("search", new SearchBolt(), 10).allGrouping("queries-spout").allGrouping("read-item-data");
+		builder.setBolt("merge", new MergeBolt(), 3).fieldsGrouping("search", new Fields("origin", "requestId"));
+		builder.setBolt("answer-query", new AnswerQueryBolt(), 2).fieldsGrouping("merge", new Fields("origin"));
+		
+		/**
+		 * Indexing flow:
+		 */
 		builder.setSpout("items-news-feed-spout", new ItemsNewsFeedSpout(), 1);
 		builder.setBolt("read-item-data", new ReadItemDataBolt(), 2).shuffleGrouping("items-news-feed-spout");
 		builder.setBolt("answer-items-feed", new AnswerItemsFeedBolt()).fieldsGrouping("read-item-data", new Fields("origin"));
-		
-		builder.setBolt("queries-processor", new SearchBucketBolt(), 10).allGrouping("queries-spout").allGrouping("read-item-data");
-		
-		builder.setBolt("join-sort", new MergeBolt(), 3).fieldsGrouping("queries-processor", new Fields("origin", "requestId"));
-		builder.setBolt("answer-query", new AnswerQueryBolt(), 2).fieldsGrouping("join-sort", new Fields("origin"));
 
 		return builder.createTopology();
 	}

@@ -112,7 +112,7 @@ public class MergeBolt implements IRichBolt {
 		this.context= context;
 		this.su = new SerializationUtils();
 		this.collector = collector;
-		totalShards = context.getRawTopology().get_bolts().get("queries-processor").get_common().get_parallelism_hint();
+		totalShards = context.getRawTopology().get_bolts().get("search").get_common().get_parallelism_hint();
 		TimerTask t= new TimerTask() {
 			@Override
 			public void run() {
@@ -128,7 +128,6 @@ public class MergeBolt implements IRichBolt {
 				}
 			}
 		};
-		
 		Timer timer= new Timer();
 		timer.scheduleAtFixedRate(t, 1000, 1000);
 	}
@@ -158,9 +157,8 @@ public class MergeBolt implements IRichBolt {
 
 		merger.merge(shardResults);
 
-		if(merger.getTotalMerged()>=totalShards){
+		if(merger.getTotalMerged()>=totalShards)
 			finish(merger);
-		}		
 	}
 	
 	protected void finish(Merger merger){

@@ -19,7 +19,7 @@ import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 
-public class SearchBucketBolt implements IRichBolt {
+public class SearchBolt implements IRichBolt {
 	private static final long serialVersionUID = 1L;
 
 	Logger log;
@@ -58,8 +58,6 @@ public class SearchBucketBolt implements IRichBolt {
 	@Override
 	public void execute(Tuple input) {
 		if(input.getSourceComponent().equals("read-item-data")){
-			//String origin= input.getString(0);
-			//String requestId= input.getString(1);
 			int itemId= input.getInteger(2);
 			if(isMine(itemId)){
 				log.debug("Mine! "+currentShard+"/"+totalShards);
