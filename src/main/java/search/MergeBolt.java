@@ -10,7 +10,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import search.model.Item;
-import search.utils.SerializationUtils;
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.IRichBolt;
@@ -28,7 +27,6 @@ public class MergeBolt implements IRichBolt {
 	int totalShards;
 	OutputCollector collector;
 	HashMap<String, Merger> inCourse= new HashMap<String, Merger>();
-	SerializationUtils su;
 	
 	public static class Merger {
 		List<Item> items;
@@ -110,7 +108,6 @@ public class MergeBolt implements IRichBolt {
 			OutputCollector collector) {
 		this.stormConf= stormConf;
 		this.context= context;
-		this.su = new SerializationUtils();
 		this.collector = collector;
 		totalShards = context.getRawTopology().get_bolts().get("search").get_common().get_parallelism_hint();
 		TimerTask t= new TimerTask() {
@@ -137,8 +134,8 @@ public class MergeBolt implements IRichBolt {
 		String origin= input.getString(0);
 		String requestId= input.getString(1);
 
-		byte[] binary= input.getBinary(3);
-		List<Item> shardResults= su.fromByteArray(binary);
+		@SuppressWarnings("unchecked")
+		List<Item> shardResults = (List<Item>)input.getValue(3);
 
 		String id = Merger.getId(origin, requestId);
 		Merger merger= null;
@@ -162,7 +159,7 @@ public class MergeBolt implements IRichBolt {
 	}
 	
 	protected void finish(Merger merger){
-		collector.emit(new Values(merger.getOrigin(), merger.getRequestId(), su.toByteArray(merger.getResults())));
+		collector.emit(new Values(merger.getOrigin(), merger.getRequestId(), merger.getResults()));
 		synchronized (inCourse) {
 			inCourse.remove(merger.getId());	
 		}

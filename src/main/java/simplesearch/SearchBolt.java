@@ -10,7 +10,6 @@ import org.apache.log4j.Logger;
 
 import search.model.Item;
 import search.model.ItemsContainer;
-import search.utils.SerializationUtils;
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.IRichBolt;
@@ -26,7 +25,6 @@ public class SearchBolt implements IRichBolt {
 	@SuppressWarnings("rawtypes")
 	Map stormConf;
 	TopologyContext context;
-	SerializationUtils su;
 	ItemsContainer myItems;
 	
 	@Override
@@ -37,7 +35,6 @@ public class SearchBolt implements IRichBolt {
 		this.stormConf= stormConf;
 		this.context= context;
 		this.collector= collector;
-		su = new SerializationUtils();
 		myItems = new ItemsContainer(10000); 
 		populateItems();
 	}
@@ -79,7 +76,7 @@ public class SearchBolt implements IRichBolt {
 		String query= input.getString(2);
 		List<Item> results= executeQuery(query, 5);
 		log.debug("Searching ["+ query +"]:"+results.size()+" results found");
-		collector.emit(new Values(origin, requestId, su.toByteArray(results)));
+		collector.emit(new Values(origin, requestId, results));
 	}
 
 	private List<Item> executeQuery(String query, int quantity) {

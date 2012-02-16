@@ -10,7 +10,6 @@ import org.apache.log4j.Logger;
 
 import search.model.Item;
 import search.model.ItemsContainer;
-import search.utils.SerializationUtils;
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.IRichBolt;
@@ -30,7 +29,6 @@ public class SearchBolt implements IRichBolt {
 	int currentShard;
 	int totalShards;
 	int base_id;
-	SerializationUtils su;
 	ItemsContainer shard;
 	
 	
@@ -46,7 +44,6 @@ public class SearchBolt implements IRichBolt {
 		currentShard = context.getThisTaskIndex();
 		String myId = context.getThisComponentId();
 		totalShards = context.getRawTopology().get_bolts().get(myId).get_common().get_parallelism_hint();
-		su = new SerializationUtils();
 		shard = new ItemsContainer(10000); 
 	}
 	
@@ -61,14 +58,13 @@ public class SearchBolt implements IRichBolt {
 			int itemId= input.getInteger(2);
 			if(isMine(itemId)){
 				log.debug("Mine! "+currentShard+"/"+totalShards);
-				byte[] ba = input.getBinary(3);
-				if(ba==null) {
+				Item itm = (Item)input.getValue(3);
+				if(itm==null) {
 					log.debug("Removing item id:"+itemId);
 					shard.remove(itemId);
 				} else {
-					Item i= su.itemFromByteArray(ba);
-					log.debug("Updating item index: "+i);
-					shard.update(i);
+					log.debug("Updating item index: "+itm);
+					shard.update(itm);
 				}
 			}
 			return ;
@@ -84,7 +80,7 @@ public class SearchBolt implements IRichBolt {
 		List<Item> results= executeLocalQuery(query, 5);
 		log.debug("Searching ["+ query +"] in shard "+currentShard +" "+results.size()+" results found");
 		// Send data to next step: Merger
-		collector.emit(new Values(origin, requestId, query, su.toByteArray(results)));
+		collector.emit(new Values(origin, requestId, query, results));
 	}
 
 	private List<Item> executeLocalQuery(String query, int quantity) {

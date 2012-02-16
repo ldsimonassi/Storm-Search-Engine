@@ -15,7 +15,6 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
 import search.model.Item;
-import search.utils.SerializationUtils;
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.IRichBolt;
@@ -31,7 +30,6 @@ public class ReadItemDataBolt implements IRichBolt {
 	@SuppressWarnings("rawtypes")
 	Map stormConf;
 	TopologyContext context;
-	SerializationUtils su;
 	String itemsApiHost;
 	HttpClient httpclient;
 	HttpGet httpget;
@@ -44,7 +42,6 @@ public class ReadItemDataBolt implements IRichBolt {
 		this.stormConf = stormConf;
 		this.context = context;
 		this.collector = collector;
-		su = new SerializationUtils();
 		this.itemsApiHost = (String)stormConf.get("items-api-host");
 		reconnect();
 	}
@@ -103,7 +100,7 @@ public class ReadItemDataBolt implements IRichBolt {
 			if(i==null) {
 				collector.emit(new Values(origin, requestId, itemId, null));
 			} else {
-				collector.emit(new Values(origin, requestId, itemId, su.itemToByteArray(i)));
+				collector.emit(new Values(origin, requestId, itemId, i));
 			}
 		} catch (Exception e) {
 			log.error("Error ["+origin+"] ["+requestId+"] ["+itemId+"]", e);

@@ -8,7 +8,6 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
 import search.model.Item;
-import search.utils.SerializationUtils;
 import storm.utils.AbstractAnswerBolt;
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
@@ -16,14 +15,12 @@ import backtype.storm.tuple.Tuple;
 
 public class AnswerQueryBolt extends AbstractAnswerBolt {
 	private static final long serialVersionUID = 1L;
-	SerializationUtils su;
 	
 	@SuppressWarnings("rawtypes")
 	@Override
 	public void prepare(Map stormConf, TopologyContext context,
 			OutputCollector collector) {
 		super.prepare(stormConf, context, collector);
-		this.su= new SerializationUtils();
 	}
 	
 	@Override
@@ -31,7 +28,7 @@ public class AnswerQueryBolt extends AbstractAnswerBolt {
 	public void execute(Tuple input) {
 		String origin= input.getString(0);
 		String requestId= input.getString(1);
-		List<Item> finalResult= su.fromByteArray(input.getBinary(2));
+		List<Item> finalResult = (List<Item>)input.getValue(2);
 		
 		JSONArray list = new JSONArray();
 		for (Item item : finalResult) {

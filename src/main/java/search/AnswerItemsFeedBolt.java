@@ -2,7 +2,6 @@ package search;
 
 import java.util.Map;
 
-import search.utils.SerializationUtils;
 import storm.utils.AbstractAnswerBolt;
 import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
@@ -16,11 +15,8 @@ public class AnswerItemsFeedBolt extends AbstractAnswerBolt {
 	public void prepare(Map stormConf, TopologyContext context,
 			OutputCollector collector) {
 		super.prepare(stormConf, context, collector);
-		this.su= new SerializationUtils();
 	}
 
-	SerializationUtils su;
-	
 	@Override
 	public void execute(Tuple input) {
 		String origin= input.getString(0);

@@ -1,5 +1,6 @@
 package search;
 
+import search.model.Item;
 import backtype.storm.Config;
 import backtype.storm.StormSubmitter;
 import backtype.storm.generated.StormTopology;
@@ -35,6 +36,7 @@ public class SearchEngineTopologyStarter {
 		conf.put("feed-pull-host", feedPullHost);
 		conf.put("items-api-host", itemsApiHost);
 		conf.put("max-pull", "100");
+		conf.registerSerialization(Item.class);
 		// Disable ackers mechanismo for this topology which doesn't need to be safe.
 		conf.put(Config.TOPOLOGY_ACKERS, 0);
 		return conf;
