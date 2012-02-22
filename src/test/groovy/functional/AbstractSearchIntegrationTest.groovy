@@ -1,4 +1,4 @@
-package integration
+package functional
 
 import search.utils.LocalTopologyStarter
 import search.SearchEngineTopologyStarter
@@ -21,13 +21,16 @@ public abstract class AbstractSearchIntegrationTest extends Assert {
 	def conf
 
 	public static topologyStarted = false
+	public static sync= new Object()
 
 	@Before
 	public void startTopology(){
-		if(!topologyStarted){
-			LocalTopologyStarter.main(null);
-			topologyStarted = true;
-			Thread.sleep(1000);
+		synchronized(sync){
+			if(!topologyStarted){
+				LocalTopologyStarter.main(null);
+				topologyStarted = true;
+				Thread.sleep(1000);
+			}
 		}
 	}
 	
@@ -37,14 +40,14 @@ public abstract class AbstractSearchIntegrationTest extends Assert {
         itemsApiClient        = new RESTClient('http://127.0.0.1:8888')
         searchEngineApiClient = new RESTClient('http://127.0.0.1:8080')
         newsFeedApiClient     = new RESTClient('http://127.0.0.1:9090')
-		clearItemsApi()
+		clearItems()
     }
     
     
     /**
      * Integration testing helpers.
      */
-	public void clearItemsApi() {
+	public void clearItems() {
 		def resp= itemsApiClient.delete(path : "/")
 		assertEquals(resp.status, 200)
 	}
@@ -79,7 +82,7 @@ public abstract class AbstractSearchIntegrationTest extends Assert {
 		return resp.data
 	}
 
-	public Object searchApi(String query) {
+	public Object search(String query) {
 		def document = "/${query}"
 		def resp = searchEngineApiClient.get(path:document)
 
@@ -88,11 +91,9 @@ public abstract class AbstractSearchIntegrationTest extends Assert {
 		return resp.data
 	}
 
-
-	public void postNew(int id) {
+	public void notifyItemChange(int id) {
 		def document = "/${id}"
 		def resp = newsFeedApiClient.get(path:document)
-
 		assertEquals(200, resp.status)
 	}
 }

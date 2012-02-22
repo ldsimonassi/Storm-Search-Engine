@@ -1,4 +1,4 @@
-package integration
+package functional
 import org.junit.Test;
 
 class EnvironmentSetUpTest extends AbstractSearchIntegrationTest {
@@ -15,7 +15,7 @@ class EnvironmentSetUpTest extends AbstractSearchIntegrationTest {
 
 	@Test
 	public void searchEngineExists() {
-		def resp = searchApi('mp3')
+		def resp = search('mp3')
 	}
 
 	@Test

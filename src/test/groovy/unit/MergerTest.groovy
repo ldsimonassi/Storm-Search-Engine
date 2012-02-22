@@ -1,4 +1,4 @@
-package individual
+package unit
 
 import org.junit.Test;
 import search.MergeBolt.Merger

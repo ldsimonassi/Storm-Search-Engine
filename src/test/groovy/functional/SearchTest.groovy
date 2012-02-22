@@ -1,27 +1,28 @@
-package integration
-import org.junit.Test;
+package functional
+
+import org.junit.Test
 
 public class SearchTest extends AbstractSearchIntegrationTest {
 
 	@Test
 	public void newsFeedTest() {
 		// Verify Empty
-		def result = searchApi("new")
+		def result = search("new")
 		assertEquals(result.size(), 0)
   
 		// Publish items
 		addItem(1, "new dvd player", 100)
 		addItem(2, "new digital camera", 80)
 		addItem(3, "new laptop computer", 70)
-		postNew(1)
-		postNew(2)
-		postNew(3)
+		notifyItemChange(1)
+		notifyItemChange(2)
+		notifyItemChange(3)
 
-		result = searchApi("drive")
+		result = search("drive")
 		assertEquals(0, result.size())
 
 		// Verify a query with results
-		result = searchApi("new")
+		result = search("new")
 		assertEquals(3, result.size())
 
 		// Delete & modify items
@@ -29,17 +30,17 @@ public class SearchTest extends AbstractSearchIntegrationTest {
 		addItem(1, "new dvd player just sold", 100)
 		removeItem(2)
 		removeItem(3)
-		postNew(1)
-		postNew(2)
-		postNew(3)
+		notifyItemChange(1)
+		notifyItemChange(2)
+		notifyItemChange(3)
 
-		result = searchApi("new")
+		result = search("new")
 		assertEquals(1, result.size())
 
-		result = searchApi("sold")
+		result = search("sold")
 		assertEquals(1, result.size())
 
-		result = searchApi("new-dvd-player-just-sold")
+		result = search("new-dvd-player-just-sold")
 		assertEquals(1, result.size())
 	}
 
@@ -56,27 +57,27 @@ public class SearchTest extends AbstractSearchIntegrationTest {
 		addItem(9, "remote control", 80)
 		addItem(10, "air conditioner", 80)
 
-		postNew(1)
-		postNew(2)
-		postNew(3)
-		postNew(4)
-		postNew(5)
-		postNew(6)
-		postNew(7)
-		postNew(8)
-		postNew(9)
-		postNew(10)
+		notifyItemChange(1)
+		notifyItemChange(2)
+		notifyItemChange(3)
+		notifyItemChange(4)
+		notifyItemChange(5)
+		notifyItemChange(6)
+		notifyItemChange(7)
+		notifyItemChange(8)
+		notifyItemChange(9)
+		notifyItemChange(10)
 
-		def result = searchApi("new")
+		def result = search("new")
 
 		assertEquals(4, result.size())
 		assertEquals(100, result[0].price, 0.1)
 
-		result = searchApi("new-mobile")
+		result = search("new-mobile")
 		assertEquals(1, result.size())
 		assertEquals(100, result[0].price, 0.1)
 
-		result = searchApi("battery")
+		result = search("battery")
 		assertEquals(2, result.size())
 		assertEquals(100, result[0].price, 0.1)
 		assertEquals(80, result[1].price, 0.1)
