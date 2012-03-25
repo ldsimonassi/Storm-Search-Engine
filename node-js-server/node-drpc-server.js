@@ -179,46 +179,57 @@ http.createServer(function (request, response) {
 // Server to be used for requesting pending tasks
 http.createServer(function (request, response) {
 	var parsed_url= parser.parse(request.url, true);
-	var max= parsed_url.query.max;
-	if(max==null || typeof(max)=="undefined")
-		max=1;
-	var waiter = { "request": request, "response": response, "max": max };
-	waiting_workers.store(waiter);
-	check_queues();
+	var query = request.url;
+	if(query=="/isAlive")
+		response.end("YES!");
+	else {
+		var max= parsed_url.query.max;
+		if(max==null || typeof(max)=="undefined")
+			max=1;
+		var waiter = { "request": request, "response": response, "max": max };
+		waiting_workers.store(waiter);
+		check_queues();
+	}
 }).listen(base_port+1);
 
 // Response receiver server
 http.createServer(function (request, response) {
-	if(request.method=="POST") {
+	var query = request.url;
+	if(query=="/isAlive")
+		response.end("YES!");
+	else {
+		if(request.method=="POST") {
+	
+			var parsed_url= parser.parse(request.url, true);
+			var id= parsed_url.query.id;
 
-		var parsed_url= parser.parse(request.url, true);
-		var id= parsed_url.query.id;
-
-		if(id==null || typeof(id)=="undefined" || 
-			active_tasks[id]==null || 
-		    typeof(active_tasks[id])=="undefined") {
-		    
-			response.writeHead(404);
-			response.end("Error ["+id+"] is not a waiting task in this server");
-			console.log("Error ["+id+"] is not a waiting task in this server");
-		} else {
-
-			var data='';
-			request.on("data", function(chunk) {
-				data += chunk;
-			});
-		
-			request.on("end", function() {
-            	active_tasks[id].response.writeHead(200, {
-        		  'Content-Type'  : content_type
-		        });
-
-				active_tasks[id].response.end(data);
-				delete active_tasks[id]
-				total_active_tasks = total_active_tasks - 1;
-				response.end("OK!\n");
-				total_requests_answered = total_requests_answered + 1;
-			});
+	
+			if(id==null || typeof(id)=="undefined" || 
+				active_tasks[id]==null || 
+				typeof(active_tasks[id])=="undefined") {
+				
+				response.writeHead(404);
+				response.end("Error ["+id+"] is not a waiting task in this server");
+				console.log("Error ["+id+"] is not a waiting task in this server");
+			} else {
+	
+				var data='';
+				request.on("data", function(chunk) {
+					data += chunk;
+				});
+			
+				request.on("end", function() {
+					active_tasks[id].response.writeHead(200, {
+					  'Content-Type'  : content_type
+					});
+	
+					active_tasks[id].response.end(data);
+					delete active_tasks[id]
+					total_active_tasks = total_active_tasks - 1;
+					response.end("OK!\n");
+					total_requests_answered = total_requests_answered + 1;
+				});
+			}
 		}
 	}
 }).listen(base_port+2);
